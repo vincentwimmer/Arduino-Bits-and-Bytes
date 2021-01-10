@@ -2,10 +2,11 @@
 -Vincent Wimmer 2018-
 
 This is a POLYPHONIC MIDI controller that utilizes 16 buttons (consider arcade cabinet buttons) and an i2c OLED display.
+The controller also has built in Scale and Octive switching (Default: C Major)
 
 Expected Arduino Board: Arduino Pro Micro (or similar architecture)
 
-Must wire in accordance to Lines 41-56.
+Must wire in accordance to Lines 42-57.
 
 Activate Menu by pressing the 4 corners of the 4x4 grid.
 Buttons 5 and 9 change the Scale +/-
