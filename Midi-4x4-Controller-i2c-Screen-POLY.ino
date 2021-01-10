@@ -8,7 +8,7 @@ Expected Arduino Board: Arduino Pro Micro (or similar architecture)
 
 Must wire in accordance to Lines 42-57.
 
-Activate Menu by pressing the 4 corners of the 4x4 grid.
+Activate Menu by pressing the 4 corners of the 4x4 grid. (All info shown on i2c screen.)
 Buttons 5 and 9 change the Scale +/-
 Buttons 6 and 10 change to Octive +/-
 
