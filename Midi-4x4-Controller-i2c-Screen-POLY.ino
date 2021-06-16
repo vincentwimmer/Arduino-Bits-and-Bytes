@@ -12,8 +12,8 @@ Activate Menu by pressing the 4 corners of the 4x4 grid. (All info shown on i2c 
 Buttons 5 and 9 change the Scale +/-
 Buttons 6 and 10 change to Octive +/-
 
-Lowest Note is bottom right.
-Highest Note is top left.
+Lowest Note is bottom left.
+Highest Note is top right.
 ------- */
 
 #include "MIDIUSB.h"
