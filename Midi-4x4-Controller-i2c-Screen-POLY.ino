@@ -117,7 +117,7 @@ void loop()
 
     xAxis_ = analogRead(A2);
     if(xAxis_ > 50){
-        xAxis_1 = map(xAxis_,300,0,45000,-48000);            
+        xAxis_1 = map(xAxis_,300,0,35000,-45000);            
         Gamepad.xAxis(xAxis_1);
     } 
 
@@ -230,5 +230,5 @@ void loop()
 
     
     // Wait
-delay(50);                                // Wait for 10ms
+delay(10);                                // Wait for 10ms
 }
