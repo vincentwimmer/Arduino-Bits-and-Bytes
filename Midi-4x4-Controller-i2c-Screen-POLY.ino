@@ -80,7 +80,7 @@ void loop()
     // Reading of shifter position
     int x=analogRead(Shifter_X_AXIS_PIN);                 // X axis
     int y=analogRead(Shifter_Y_AXIS_PIN);                 // Y axis
-    int reverse=analogRead(Shifter_Reverse_Pin);
+    int reverse=digitalRead(Shifter_Reverse_Pin);
     
     // Current gear calculation
     int gear=0;                          // Default value is neutral
@@ -101,10 +101,10 @@ void loop()
             if(y<HS_YAXIS_300) gear=4;       // 4th gear
         }
         
-    if(gear!=6) reverse=0;         // Reverse gear is allowed only on 6th gear position
+    //if(gear!=6) reverse=0;         // Reverse gear is allowed only on 6th gear position
     //Serial.print(reverse);
     //Serial.print("\n");
-    if(reverse>1000) gear=7;         // 6th gear is deactivated if reverse gear is engaged
+    //if(reverse>1) gear=7;         // 6th gear is deactivated if reverse gear is engaged
     
     // Release virtual buttons for all gears
     Gamepad.release(1);
@@ -113,14 +113,14 @@ void loop()
     Gamepad.release(4);
     Gamepad.release(5);
     Gamepad.release(6);
-    Gamepad.release(7);
+    //Gamepad.release(7);
 
-    //xAxis_ = analogRead(A2);
-    //if(xAxis_ > 50){
-    //    xAxis_1 = map(xAxis_,300,0,45000,-48000);            
-    //    Gamepad.xAxis(xAxis_1);
-    //} 
-    
+    xAxis_ = analogRead(A2);
+    if(xAxis_ > 50){
+        xAxis_1 = map(xAxis_,300,0,45000,-48000);            
+        Gamepad.xAxis(xAxis_1);
+    } 
+
     // Depress virtual button for current gear
     if(gear>0) Gamepad.press(gear);
 
