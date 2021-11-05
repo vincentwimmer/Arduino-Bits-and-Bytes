@@ -1,177 +1,155 @@
-#include <Joystick.h>
 
-// Create the Joystick
-Joystick_ Joystick;
+#include "HID.h"
+#include "HID-Project.h"
 
-#define HS_XAXIS_12        400
-#define HS_XAXIS_56        500
-#define HS_YAXIS_135       800
-#define HS_YAXIS_246       300
+// pin definitions
+#define Shifter_Reverse_Pin        15
+#define Shifter_X_AXIS_PIN         A0 //4 Shifter X axis
+#define Shifter_Y_AXIS_PIN         A1 //8 Shifter Y axis
 
-int gearAct=0;
-int zAxis_ = 0;
+// H-shifter mode analog axis thresholds
+#define HS_XAXIS_350        350
+#define HS_XAXIS_600        600
+#define HS_YAXIS_300       300
+#define HS_YAXIS_600       575
 
-void setup() {
-  // Shifter Pins
-  pinMode(A0, INPUT_PULLUP);  // ShiftX axis
-  pinMode(A1, INPUT_PULLUP);  // ShiftY axis
-  pinMode(15, INPUT);     // Reverse Pin
 
-  // HB Pin
-  pinMode(A2, INPUT_PULLUP);
+// Digital inputs definitions
+#define DI_REVERSE         1
+#define DI_MODE            3
 
-  // Button Box Pins
-  pinMode(0, INPUT);
-  pinMode(1, INPUT);
-  pinMode(4, INPUT);
-  pinMode(5, INPUT);
-  pinMode(6, INPUT);
-  pinMode(7, INPUT);
-  pinMode(8, INPUT);
-  pinMode(9, INPUT);
-  pinMode(10, INPUT);
-  pinMode(16, INPUT);
-  pinMode(14, INPUT);
-  
-  Joystick.begin();
-  
+int yAxis_ = 0; 
+int rxAxis_ = 0;                    
+int ryAxis_ = 0;  
+int xAxis_ = 0;          
+int Throttle_ = 0; 
+
+int yAxis_1 = -32000; 
+int rxAxis_1 = -32000;                    
+int ryAxis_1 = -32000;  
+int xAxis_1 = -32000;          
+int Throttle_1 = -32000; 
+
+int BB1 = 0;
+
+// Called at startup
+// Must initialize hardware and software modules
+void setup()
+{
+    // G25 shifter analog inputs configuration 
+    pinMode(Shifter_X_AXIS_PIN, INPUT);   // X axis
+    pinMode(Shifter_Y_AXIS_PIN, INPUT);   // Y axis
+    pinMode(Shifter_Reverse_Pin, INPUT);
+    
+    pinMode(14, INPUT);
+
+    // Virtual joystick configuration 
+    Gamepad.begin();
+    
+    // Virtual serial interface configuration 
+    Serial.begin(38400);
 }
 
-void loop() {
-  
-  // --- Begin Shifter ---
-  int ShiftX=analogRead(0); // X axis
-  int ShiftY=analogRead(1); // Y axis
+// Called in a loop after initialization
+void loop() 
+{
+    // Reading of button states from G25 shift register
+    int b[16];
+    
+    
+    // Reading of shifter position
+    int x=analogRead(Shifter_X_AXIS_PIN);                 // X axis
+    int y=analogRead(Shifter_Y_AXIS_PIN);                 // Y axis
+    int reverse=analogRead(Shifter_Reverse_Pin);
+    
+    // Current gear calculation
+    int gear=0;                          // Default value is neutral
 
-  int reverseEngaged = digitalRead(15);
-  int engagedGear = 0;
-  int reverseAct = 0;
+        if(x<HS_XAXIS_350)                  // Shifter on the left?
+        {
+            if(y>HS_YAXIS_600) gear=1;       // 1st gear
+            if(y<HS_YAXIS_300) gear=2;       // 2nd gear
+        }
+        else if(x>HS_XAXIS_600)             // Shifter on the right?
+        {
+            if(y>HS_YAXIS_600) gear=5;       // 5th gear
+            if(y<HS_YAXIS_300) gear=6;       // 6th gear
+        }
+        else                               // Shifter is in the middle
+        {
+            if(y>HS_YAXIS_600) gear=3;       // 3rd gear
+            if(y<HS_YAXIS_300) gear=4;       // 4th gear
+        }
+        
+    if(gear!=6) reverse=0;         // Reverse gear is allowed only on 6th gear position
+    //Serial.print(reverse);
+    //Serial.print("\n");
+    if(reverse>1000) gear=7;         // 6th gear is deactivated if reverse gear is engaged
+    
+    // Release virtual buttons for all gears
+    Gamepad.release(1);
+    Gamepad.release(2);
+    Gamepad.release(3);
+    Gamepad.release(4);
+    Gamepad.release(5);
+    Gamepad.release(6);
+    Gamepad.release(7);
 
-  if( reverseEngaged == 1 ){
+    
+    Gamepad.release(9);
+    Gamepad.release(10);
+    Gamepad.release(11);
+    Gamepad.release(12);
+    Gamepad.release(13);
+    Gamepad.release(14);
+    Gamepad.release(15);
+    Gamepad.release(16);
+    Gamepad.release(17);
+    Gamepad.release(18);
 
-      engagedGear = 8;
-      reverseAct = 1;
+    xAxis_ = analogRead(A2);
+    if(xAxis_ > 50){
+        xAxis_1 = map(xAxis_,300,0,45000,-48000);            
+        Gamepad.xAxis(xAxis_1);
+    } 
+    
+    // Depress virtual button for current gear
+    if(gear>0) Gamepad.press(gear);
 
-  }else{ 
-    if(ShiftX < HS_XAXIS_12) 
-    {
-      if(ShiftY > HS_YAXIS_135) engagedGear=1;
-      if(ShiftY < HS_YAXIS_246) engagedGear=2;
-    }
-    else if(ShiftX > HS_XAXIS_56)
-    {
-      if(ShiftY > HS_YAXIS_135) engagedGear=5;
-      if(ShiftY < HS_YAXIS_246) engagedGear=6;
+   BB1 = digitalRead(14);
+   Serial.print(BB1);
+   if(BB1 > 0){
+       Gamepad.press(8);
+   } else {
+       Gamepad.release(8);
+   }
+    
+    
+    // Write new virtual joystick state
+    Gamepad.write();
+    
+    // Write inputs and outputs (remove comments to debug)
+    
+      
+    /*
+    Serial.print(" X axis: ");
+    Serial.print(ryAxis_);
 
-    }
-    else
-    {
-      if(ShiftY > HS_YAXIS_135) engagedGear=3;
-      if(ShiftY < HS_YAXIS_246) engagedGear=4;
-    }
+    Serial.print(" Y axis: ");
+    Serial.print(y);
+    
+    Serial.print(reverse);
+    Serial.print(" Gear: ");
+    Serial.print(gear);
 
-  }
+    Serial.print(" Digital inputs: ");
+    for(int i=0; i<16; i++)Serial.print(b[i]);
+    Serial.print(" ");
+    
+    Serial.print("\n");
+    */
 
-  if(gearAct != 6) reverseAct = 0;
-
-    if (engagedGear != gearAct){
-        gearAct = engagedGear;
-        desactivar();
-        Joystick.setButton(gearAct-1, HIGH);
-    }
-  // --- End Shifter -- 
-
-  // --- Begin HB ---
-  zAxis_ = analogRead(A2);
-  zAxis_ = map(zAxis_,0,1023,0,255);
-  Joystick.setZAxis(zAxis_);
-  // --- End HB ----
-
-  // --- Begin BB ----
-  int BB1 = digitalRead(0);
-  int BB2 = digitalRead(1);
-  int BB3 = digitalRead(4);
-  int BB4 = digitalRead(5);
-  int BB5 = digitalRead(6);
-  int BB6 = digitalRead(7);
-  int BB7 = digitalRead(8);
-  int BB8 = digitalRead(9);
-  int BB9 = digitalRead(10);
-  int BB10 = digitalRead(16);
-  int BB11 = digitalRead(14);
-
-  if( BB1 == 1 ){
-    Joystick.setButton(8, HIGH);
-  } else {
-    Joystick.setButton(8, LOW);
-  }
-
-  if( BB2 == 1 ){
-    Joystick.setButton(9, HIGH);
-  } else {
-    Joystick.setButton(9, LOW);
-  }
-
-  if( BB3 == 1 ){
-    Joystick.setButton(10, HIGH);
-  } else {
-    Joystick.setButton(10, LOW);
-  }
-
-  if( BB4 == 1 ){
-    Joystick.setButton(11, HIGH);
-  } else {
-    Joystick.setButton(11, LOW);
-  }
-
-  if( BB5 == 1 ){
-    Joystick.setButton(12, HIGH);
-  } else {
-    Joystick.setButton(12, LOW);
-  }
-
-  if( BB6 == 1 ){
-    Joystick.setButton(13, HIGH);
-  } else {
-    Joystick.setButton(13, LOW);
-  }
-
-  if( BB7 == 1 ){
-    Joystick.setButton(14, HIGH);
-  } else {
-    Joystick.setButton(14, LOW);
-  }
-
-  if( BB8 == 1 ){
-    Joystick.setButton(15, HIGH);
-  } else {
-    Joystick.setButton(15, LOW);
-  }
-
-  if( BB9 == 1 ){
-    Joystick.setButton(16, HIGH);
-  } else {
-    Joystick.setButton(16, LOW);
-  }
-
-  if( BB10 == 1 ){
-    Joystick.setButton(17, HIGH);
-  } else {
-    Joystick.setButton(17, LOW);
-  }
-
-  if( BB11 == 1 ){
-    Joystick.setButton(18, HIGH);
-  } else {
-    Joystick.setButton(18, LOW);
-  }
-  // --- End BB ---
-
-  // "Polling" Rate
-  delay(50);
-}
-
-void desactivar(){
-  // Depress virtual button for current gear
-  for(int i = 0; i <= 7 ; i++ )  Joystick.setButton(i, LOW);
+    
+    // Wait
+delay(50);                                // Wait for 10ms
 }
