@@ -1,3 +1,5 @@
+// Note: Reverse Gear is commented out in this version. Uncomment lines 105, 108, and 117 to reactivate.
+
 #include "HID.h"
 #include "HID-Project.h"
 
